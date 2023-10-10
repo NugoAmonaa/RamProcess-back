@@ -10,106 +10,30 @@ namespace RamProcessingTool.Controllers
     public class RamController : ControllerBase
     {
         public IRamEntityRepository _ramEntityRepository;
+        private readonly IConfiguration _configuration;
 
 
 
-        public RamController(IRamEntityRepository ramEntityRepository)
+        public RamController(IRamEntityRepository ramEntityRepository, IConfiguration configuration)
         {
             _ramEntityRepository = ramEntityRepository;
+            _configuration = configuration;
+
         }
-        [HttpPost]
-        public async Task<IEnumerable<RamEntity>> GenerateRamsAsync()
+
+
+        [HttpGet("Applications")]
+        public string[] GetApplications()
         {
-
-            for (int i = 10; i < 30; i++)
-            {
-                int count = 0;
-
-                DateTime date = DateTime.Now.AddDays(i);
-                while (count != 8640)
-                {
-                    Process[] processes = Process.GetProcesses();
-
-                    long totalMemoryUsageKB = 0;
-
-
-                    foreach (var process in processes)
-                    {
-                        totalMemoryUsageKB += process.PrivateMemorySize64 / 1024;
-
-                    }
-                    date = date.AddSeconds(10);
-
-                    RamEntity ramEntity = new RamEntity()
-                    {
-                        Name = $"{nameof(RamEntity)}",
-                        Date = date,
-                        Size = totalMemoryUsageKB / 1024
-                    };
-
-                    count++;
-                    await _ramEntityRepository.Insert(ramEntity);
-
-                }
-                await _ramEntityRepository.SaveChanges();
-            }
-
-            //Process[] processes = Process.GetProcesses();
-            //foreach(Process process in processes)
-            //{
-            //    try
-            //    {
-
-
-            //    Console.WriteLine(process.PrivateMemorySize/1024);
-            //    }
-            //        catch(Exception ex)
-            //    {
-            //        //Console.WriteLine(ex.ToString());
-            //    }
-            //}
-            return Enumerable.Empty<RamEntity>();
+          
+                var processNames = _configuration.GetSection("ProcessNames").Get<string[]>();
+                return processNames;
+            
+            
         }
-
-        //[HttpPost]
-        //public IEnumerable<RamEntity> GenerateRams()
-        //{
-        //    int count = 0;
-        //    while (count != 100)
-        //    {
-        //        Process[] processes = Process.GetProcesses();
-
-        //        long totalMemoryUsageKB = 0;
-
-
-        //        foreach (var process in processes)
-        //        {
-        //            totalMemoryUsageKB += process.PrivateMemorySize64 / 1024;
-
-        //        }
-        //        RamEntity ramEntity = new RamEntity()
-        //        {
-        //            Name = $"{nameof(RamEntity)}",
-        //            Date = DateTime.Now,
-        //            Size = totalMemoryUsageKB / 1024
-        //        };
-        //        _ramEntityRepository.Insert(ramEntity);
-        //        _ramEntityRepository.SaveChanges();
-        //        Thread.Sleep(100); 
-
-        //    }
-        //    return Enumerable.Empty<RamEntity>();
-        //}
-        //[HttpGet]
-        //public async Task<IEnumerable<RamEntity>> getRams()
-        //{
-
-        //    return await _ramEntityRepository.GetList();
-        //}
         [HttpGet]
         public async Task<List<RamEntity>> GetAverageRamSizeByMinute()
         {
-            // Get the list of RamEntity objects from your repository
             var ramEntities = await _ramEntityRepository.GetList();
 
             // Group the entities by the minute part of the Date property within each hour and calculate the average size
