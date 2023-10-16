@@ -32,24 +32,11 @@ namespace RamProcessingTool.Controllers
             
         }
         [HttpGet]
-        public async Task<List<RamEntity>> GetAverageRamSizeByMinute()
+        public async Task<List<RamEntity>> GetList(DateTime startDate, DateTime endDate, string appName)
         {
-            var ramEntities = await _ramEntityRepository.GetList();
+            var ramEntities = await _ramEntityRepository.GetListByPeriod(startDate,endDate, appName);
 
-            // Group the entities by the minute part of the Date property within each hour and calculate the average size
-            //var result = await ramEntities
-            //    //.GroupBy(entity => new { entity.Date.Hour, entity.Date.Minute })
-            //    //.Select(group =>
-            //    //{
-            //    //    return new
-            //    //    {
-            //    //        Date = group.Key.Hour,
-            //    //        size = group.Average(entity => entity.Size)
-            //    //    };
-            //    //})
-            //    //.OrderBy(group => group.Date)
-            //    //.ThenBy(group => group.minutes)
-            //    .ToListAsync();
+        
 
             return ramEntities.ToList();
         }

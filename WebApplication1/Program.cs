@@ -4,6 +4,7 @@ using Quartz;
 using VacationScaffold.RepositoryImplementation;
 using WebApplication1.Repository;
 using Quartz.Simpl;
+using System.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,10 +24,12 @@ builder.Services.AddQuartz(options =>
     options.AddJob<RamInsertJob>(JobKey.Create(nameof(RamInsertJob)))
     .AddTrigger(trigger =>
     {
+        var processIntervalSection = builder.Configuration.GetSection("ProcessInterval");
+        var intervalSeconds = processIntervalSection.GetValue<int>("IntervalSeconds");
         trigger.ForJob(nameof(RamInsertJob))
          //.StartNow()
             .WithSimpleSchedule(x => x
-                .WithIntervalInSeconds(1)
+                .WithIntervalInSeconds(intervalSeconds)
                 .RepeatForever());
 
     });

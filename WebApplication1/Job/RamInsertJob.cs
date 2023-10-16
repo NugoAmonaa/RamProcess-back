@@ -10,12 +10,14 @@ public class RamInsertJob : IJob
 {
     private readonly IRamEntityRepository _ramEntityRepository;
     private readonly IConfiguration _configuration;
+    string[] _processNames = null;
 
 
     public RamInsertJob(IRamEntityRepository ramEntityRepository, IConfiguration configuration)
     {
         _ramEntityRepository = ramEntityRepository;
         _configuration = configuration;
+        _processNames = _configuration.GetSection("ProcessNames").Get<string[]>();
 
     }
 
@@ -23,21 +25,21 @@ public class RamInsertJob : IJob
     {
 
         Process[] processes = Process.GetProcesses();
-        var processNames = _configuration.GetSection("ProcessNames").Get<string[]>();
 
-        foreach (var process in processes)
+        foreach (var processName in _processNames)
         {
+            Process[] proc = Process.GetProcessesByName(processName);
+            int a = (int)proc.Select(pr => pr.PrivateMemorySize64 / 1024 / 1024).Sum();
             DateTime date = DateTime.Now;
             RamEntity ramEntity = new RamEntity()
             {
-                Name = $"{process.ProcessName}",
+                Name = $"{processName}",
                 Date = date,
-                Size = process.PrivateMemorySize64 / 1024 / 1024
+                Size = a
             };
-            if (processNames.Contains(process.ProcessName.ToLower())) // Check if the process name is in the configuration
-            {
-                await _ramEntityRepository.Insert(ramEntity);
-            }
+
+            await _ramEntityRepository.Insert(ramEntity);
+
 
         }
 
